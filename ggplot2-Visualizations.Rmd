@@ -1,0 +1,16 @@
+---
+title: "ggplot2 Visualizations"
+author: "Yanwen Wang"
+date: "10/6/2021"
+output: 
+  html_document:
+    toc: true 
+    number_sections: true
+    theme: united
+    highlight: tango
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
