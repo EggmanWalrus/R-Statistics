@@ -5,6 +5,7 @@ date: "10/6/2021"
 output: 
   html_document:
     toc: true 
+    toc_float: true
     number_sections: true
     theme: united
     highlight: tango
@@ -14,3 +15,104 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+An effective chart is one that:  
+    1. Conveys the right information without distorting facts.  
+    2. Is simple but elegant. It should not force you to think much in order to get it.  
+    3. Aesthetics supports information rather that overshadow it.  
+    4. Is not overloaded with information.  
+    
+The list below sorts the visualizations based on its primary purpose. Primarily, there are 8 types of objectives you may construct plots.  
+
+# Correlation
+## Scatterplot
+
+## Scatterplot with Encircling
+
+## Jitter Plot
+
+## Counts Chart
+
+## Bubble Plot
+
+## Animated Bubble Plot
+
+## Marginal Histogram / Boxplot
+
+## Correlogram
+
+# Deviation
+## Diverging Bars
+
+## Diverging Lollipop Chart
+
+## Diverging Dot Plot
+
+## Area Chart
+
+# Ranking
+## Ordered Bar Chart
+
+## Lollipop Chart
+
+## Dot Plot
+
+## Slope Chart
+
+## Dumbbell Plot
+
+# Distribution
+## Histogram
+
+## Density Plot
+
+## Box Plot
+
+## Dot + Box Plot
+
+## Tufte Boxplot
+
+## Violin Plot
+
+## Population Pyramid
+
+# Composition
+## Waffle Chart
+
+## Pie Chart
+
+## Treemap
+
+## Bar Chart
+
+# Change
+## Time Series Plots
+### From a Data Frame
+
+### Format to Monthly X Axis
+
+### Format to Yearly X Axis
+
+### From Long Data Format
+
+### From Wide Data Format
+
+## Stacked Area Chart
+
+## Calendar Heat Map
+
+## Slope Chart
+
+## Seasonal Plot
+
+# Groups
+## Dendrogram
+
+## Clusters
+
+# Spatial
+## Open Street Map
+
+## Google Road Map
+
+## Google Hybrid Map
