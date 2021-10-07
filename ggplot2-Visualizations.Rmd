@@ -16,6 +16,16 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r, message=F, warning=F}
+library(tidyverse)
+library(ggalt)
+
+# turn-off scientific notation like 1e+48
+options(scipen=999)
+
+theme_set(theme_bw())
+```
+
 An effective chart is one that:  
     1. Conveys the right information without distorting facts.  
     2. Is simple but elegant. It should not force you to think much in order to get it.  
@@ -27,13 +37,120 @@ The list below sorts the visualizations based on its primary purpose. Primarily,
 # Correlation
 ## Scatterplot
 
+The most frequently used plot for data analysis is undoubtedly the scatterplot. Whenever you want to understand the nature of relationship between two variables, invariably the first choice is the scatterplot.
+
+It can be drawn using `geom_point()`. Additionally, `geom_smooth` which draws a smoothing line (based on loses) by default, can be tweaked to draw the line of best fit by setting `method='lm'`.
+
+```{r, warning=F, message=F}
+data("midwest", package = "ggplot2")
+
+# Scatterplot
+ggplot(midwest, aes(area, poptotal)) + 
+  geom_point(aes(col = state, size = popdensity)) + 
+  geom_smooth(formula = y ~ x, method = "loess", se = T) + 
+  xlim(c(0, 0.1)) + 
+  ylim(c(0, 500000)) + 
+  labs(subtitle = "Area Vs Population", 
+       y = "Population", 
+       x = "Area", 
+       title = "Scatterplot", 
+       caption = "Source: midwest")
+```
+
+
 ## Scatterplot with Encircling
+
+When presenting the results, sometimes I would encircle certain special group of points or region in the chart so as to draw the attention to those peculiar cases. This can be conveniently done using the `geom_encircle()` in `ggalt` package.
+
+Within `geom_encircle()`, set the data to a new dataframe that contains only the points (rows) or interest. Moreover, You can `expand` the curve so as to pass just outside the points. The `color` and `size` (thickness) of the curve can be modified as well. See below example.
+
+```{r, warning=F, message=F}
+# Select data points to be encircled
+midwest_select <- midwest[midwest$poptotal > 350000 & 
+                            midwest$poptotal <= 500000 & 
+                            midwest$area > 0.01 & 
+                            midwest$area < 0.1, ]
+
+ggplot(midwest, aes(area, poptotal)) + 
+  geom_point(aes(col = state, size = popdensity)) +   # draw points
+  geom_smooth(formula = y ~ x, method = "loess", se = F) + 
+  xlim(c(0, 0.1)) + 
+  ylim(c(0, 500000)) +   
+  # draw smoothing line
+  geom_encircle(aes(area, poptotal), 
+                data = midwest_select, 
+                color = "red", 
+                size = 2, 
+                expand = 0.09) +   # encircle
+  labs(subtitle = "Area Vs Population", 
+       y = "Population", 
+       x = "Area", 
+       title = "Scatterplot + Encircle", 
+       caption = "Source: midwest")
+```
 
 ## Jitter Plot
 
+Let’s look at a new data to draw the scatterplot. This time, I will use the `mpg` dataset to plot city mileage (`cty`) vs highway mileage (`hwy`).
+
+```{r, message=F, warning=F}
+data(mpg, package="ggplot2")
+
+ggplot(mpg, aes(cty, hwy)) + 
+  geom_point() + 
+  geom_smooth(formula = y ~ x, method = "lm", se = F) +
+  labs(subtitle = "mpg: city vs highway mileage", 
+       y = "hwy", 
+       x = "cty", 
+       title = "Scatterplot with overlapping points", 
+       caption = "Source: midwest")
+```
+
+This innocent looking plot is hiding something. Can you find out?
+
+The original data has 234 data points but the chart seems to display fewer points. What has happened? This is because there are many overlapping points appearing as a single dot.
+
+So how to handle this? There are few options. We can make a jitter plot with `jitter_geom()`. As the name suggests, the overlapping points are randomly jittered around its original position based on a threshold controlled by the width argument.
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) + 
+  geom_jitter(width = .5, size = 1) +
+  labs(subtitle = "mpg: city vs highway mileage", 
+       y = "hwy", 
+       x = "cty", 
+       title = "Jittered Points")
+```
+
 ## Counts Chart
 
+The second option to overcome the problem of data points overlap is to use what is called a counts chart. Wherever there is more points overlap, the size of the circle gets bigger.
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) + 
+  geom_count(col = "tomato3", show.legend = T, alpha = 0.8) +
+  labs(subtitle = "mpg: city vs highway mileage", 
+       y = "hwy", 
+       x = "cty", 
+       title = "Jittered Points")
+```
+
 ## Bubble Plot
+
+While scatterplot lets you compare the relationship between 2 continuous variables, bubble chart serves well if you want to understand relationship within the underlying groups based on:  
+    1. A Categorical variable (by changing the color) and  
+    2. Another continuous variable (by changing the size of points).
+    
+In simpler words, bubble charts are more suitable if you have 4-Dimensional data where two of them are numeric (X and Y) and one other categorical (color) and another numeric variable (size).
+
+```{r}
+mpg_select <- mpg[mpg$manufacturer %in% c("audi", "ford", "honda", "hyundai"), ]
+
+ggplot(mpg_select, aes(displ, cty)) + 
+  geom_jitter(aes(col = manufacturer, size = hwy)) + 
+  geom_smooth(aes(col = manufacturer), formula = y ~ x, method = "lm", se = F) +
+  labs(subtitle="mpg: Displacement vs City Mileage",
+       title="Bubble chart")
+```
 
 ## Animated Bubble Plot
 
