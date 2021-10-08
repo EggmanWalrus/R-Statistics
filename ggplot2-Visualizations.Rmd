@@ -19,6 +19,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, message=F, warning=F}
 library(tidyverse)
 library(ggalt)
+library(ggExtra)
+library(ggcorrplot)
+library(gapminder)
 
 # turn-off scientific notation like 1e+48
 options(scipen=999)
@@ -152,11 +155,41 @@ ggplot(mpg_select, aes(displ, cty)) +
        title="Bubble chart")
 ```
 
-## Animated Bubble Plot
-
 ## Marginal Histogram / Boxplot
 
+If you want to show the relationship as well as the distribution in the same chart, use the marginal histogram. It has a histogram of the X and Y variables at the margins of the scatterplot.
+
+This can be implemented using the `ggMarginal()` function from the `ggExtra` package. Apart from a `histogram`, you could choose to draw a marginal `boxplot` or `density` plot by setting the respective `type` option.
+
+```{r, message=F, warning=F}
+mpg_select <- mpg[mpg$hwy >= 35 & mpg$cty > 27, ]
+
+g <- ggplot(mpg, aes(cty, hwy)) + 
+  geom_count(col = "tomato3", show.legend = T, alpha = 0.8) + 
+  geom_smooth(formula = y ~ x, method="lm", se=F)
+
+#ggMarginal(g, type = "boxplot", fill="transparent")
+#ggMarginal(g, type = "density", fill="transparent")
+ggMarginal(g, type = "histogram", fill="transparent")
+```
+
 ## Correlogram
+
+Correlogram let’s you examine the correlation of multiple continuous variables present in the same dataframe. This is conveniently implemented using the `ggcorrplot` package.
+
+```{r, warning=F, message=F}
+corr <- round(cor(mtcars), 1)
+
+ggcorrplot(corr, 
+           hc.order = TRUE, 
+           type = "lower", 
+           lab = TRUE, 
+           lab_size = 3, 
+           method="circle", 
+           colors = c("tomato2", "white", "springgreen3"), 
+           title="Correlogram of mtcars", 
+           ggtheme=theme_bw)
+```
 
 # Deviation
 ## Diverging Bars
