@@ -21,6 +21,7 @@ library(tidyverse)
 library(ggalt)
 library(ggExtra)
 library(ggcorrplot)
+library(quantmod)
 library(gapminder)
 
 # turn-off scientific notation like 1e+48
@@ -194,11 +195,78 @@ ggcorrplot(corr,
 # Deviation
 ## Diverging Bars
 
+Diverging Bars is a bar chart that can handle both negative and positive values. This can be implemented by a smart tweak with `geom_bar()`.  
+
+By default, `geom_bar()` has the stat set to count. That means, when you provide just a continuous X variable (and no Y variable), it tries to make a histogram out of the data.
+
+In order to make a bar chart create bars instead of histogram, you need to do two things.  
+    1. Set `stat=identity`  
+    2. Provide both `x` and `y` inside `aes()` where, `x` is either character or factor and `y` is numeric.
+    
+```{r}
+#Create new column for car names
+mtcars$`car name` <- rownames(mtcars)
+#Compute normalized mpg
+mtcars$mpg_z <- round((mtcars$mpg - mean(mtcars$mpg))/sd(mtcars$mpg), 2)
+#Above or below avg flag
+mtcars$mpg_type <- ifelse(mtcars$mpg_z < 0, "below", "above")
+#Sort
+mtcars <- mtcars[order(mtcars$mpg_z), ]
+#Convert to factor to retain sorted order in plot.
+mtcars$`car name` <- factor(mtcars$`car name`, levels = mtcars$`car name`)
+
+#Diverging barcharts
+ggplot(mtcars, aes(x = `car name`, y = mpg_z, label = mpg_z)) + 
+  geom_bar(stat = 'identity', aes(fill = mpg_type), width = 0.7)  +
+  scale_fill_manual(name = "Mileage", 
+                    labels = c("Above Average", "Below Average"), 
+                    values = c("above"="#00ba38", "below"="#f8766d")) + 
+  labs(subtitle = "Normalised mileage from 'mtcars'", 
+       title = "Diverging Bars") + 
+  coord_flip()
+```
+
 ## Diverging Lollipop Chart
 
-## Diverging Dot Plot
+Lollipop chart conveys the same information as bar chart and diverging bar. Except that it looks more modern. Instead of `geom_bar`, I use `geom_point` and `geom_segment` to get the lollipops right. Let’s draw a lollipop using the same data I prepared in the previous example of diverging bars.
+
+```{r}
+ggplot(mtcars, aes(x = `car name`, y = mpg_z, label = mpg_z)) + 
+  geom_point(stat = 'identity', aes(col = mpg_type), size = 7)  +
+  geom_segment(aes(y = 0, 
+                   x = `car name`, 
+                   yend = mpg_z, 
+                   xend = `car name`), 
+               color = "grey") +
+  geom_text(color = "white", size = 2) +
+  labs(title = "Diverging Lollipop Chart", 
+       subtitle = "Normalized mileage from 'mtcars': Lollipop") + 
+  ylim(-2.5, 2.5) +
+  coord_flip()
+```
 
 ## Area Chart
+
+Area charts are typically used to visualize how a particular metric (such as % returns from a stock) performed compared to a certain baseline. Other types of %returns or %change data are also commonly used. The `geom_area()` implements this.
+
+```{r}
+data("economics", package = "ggplot2")
+
+#Compute % Returns
+economics$returns_perc <- c(0, diff(economics$psavert)/economics$psavert[-length(economics$psavert)])
+
+# Create break points and labels for axis ticks
+brks <- economics$date[seq(1, length(economics$date), 12)]
+lbls <- lubridate::year(economics$date[seq(1, length(economics$date), 12)])
+
+ggplot(economics[1:100, ], aes(date, returns_perc)) + 
+  geom_area() + 
+  scale_x_date(breaks = brks, labels = lbls) + 
+  labs(title = "Area Chart", 
+       subtitle = "Perc Returns for Personal Savings", 
+       y = "% Returns for Personal savings", 
+       caption = "Source: economics")
+```
 
 # Ranking
 ## Ordered Bar Chart
