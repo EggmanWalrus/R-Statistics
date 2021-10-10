@@ -22,6 +22,7 @@ library(ggalt)
 library(ggExtra)
 library(ggcorrplot)
 library(quantmod)
+library(scales)
 library(gapminder)
 
 # turn-off scientific notation like 1e+48
@@ -269,15 +270,140 @@ ggplot(economics[1:100, ], aes(date, returns_perc)) +
 ```
 
 # Ranking
+
+Used to compare the position or performance of multiple items with respect to each other. Actual values matters somewhat less than the ranking.
+
 ## Ordered Bar Chart
+
+```{r}
+mpg %>% 
+  group_by(manufacturer) %>% 
+  summarise(mileage = mean(cty)) %>% 
+  
+  ggplot(aes(reorder(manufacturer, -mileage), mileage)) + 
+    geom_bar(stat = "identity", width = 0.5, fill = "tomato3") +
+    labs(title = "Ordered Bar Chart", 
+         subtitle = "Make Vs Avg. Mileage", 
+         x = "Manufacturer",
+         caption = "source: mpg") + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6))
+```
 
 ## Lollipop Chart
 
+Lollipop chart reduces the clutter and lays more emphasis on the value.
+
+```{r}
+mpg %>% 
+  group_by(manufacturer) %>% 
+  summarise(mileage = mean(cty)) %>% 
+  
+  ggplot(aes(reorder(manufacturer, -mileage), mileage)) + 
+    geom_point(size = 7) + 
+    geom_segment(aes(x = manufacturer, 
+                     xend = manufacturer, 
+                     y = 0, 
+                     yend = mileage)) + 
+    labs(title = "Lollipop Chart", 
+         subtitle = "Make Vs Avg. Mileage", 
+         x = "Manufacturer",
+         caption = "source: mpg") + 
+    theme(axis.text.x = element_text(angle=65, vjust=0.6))
+```
+
 ## Dot Plot
+
+```{r}
+mpg %>% 
+  group_by(manufacturer) %>% 
+  summarise(mileage = mean(cty)) %>% 
+  
+  ggplot(aes(reorder(manufacturer, -mileage), mileage)) + 
+    geom_point(col="tomato2", size=5) + 
+    geom_segment(aes(x = manufacturer, 
+                     xend = manufacturer, 
+                     y = min(mileage), 
+                     yend = max(mileage)), 
+                 linetype="dashed", 
+                 size=0.2) + 
+    labs(title = "Dot Plot", 
+         subtitle = "Make Vs Avg. Mileage", 
+         x = "Manufacturer",
+         caption="source: mpg") +  
+    coord_flip()
+```
 
 ## Slope Chart
 
+Slope charts are an excellent way of comparing the positional placements between 2 points on time. At the moment, there is no built-in function to construct this. Following code serves as a pointer about how you may approach this.
+
+```{r}
+#Prep data
+df <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/gdppercap.csv")
+
+colnames(df) <- c("continent", "1952", "1957")
+left_label <- paste(df$continent, round(df$`1952`), sep=", ")
+right_label <- paste(df$continent, round(df$`1957`), sep=", ")
+df$class <- ifelse((df$`1957` - df$`1952`) < 0, "red", "green")
+
+ggplot(df) + 
+  geom_segment(aes(x = 1, xend = 2, y = `1952`, yend = `1957`, col = class), size=.75, show.legend=F) + 
+  geom_vline(xintercept = 1, linetype = "dashed", size = 0.1) + 
+  geom_vline(xintercept = 2, linetype = "dashed", size = .1) +
+  scale_color_manual(labels = c("Up", "Down"), 
+                     values = c("green"="#00ba38", "red"="#f8766d")) +  # color of lines
+  labs(x = "", 
+       y = "Mean GdpPerCap") +  # Axis labels
+  xlim(0.5, 2.5) + 
+  ylim(0, (1.1 * (max(df$`1952`, df$`1957`)))) +
+  
+  geom_text(label=left_label, y=df$`1952`, x=rep(1, NROW(df)), hjust=1.1, size=3.5) + 
+  geom_text(label=right_label, y=df$`1957`, x=rep(2, NROW(df)), hjust=-0.1, size=3.5) + 
+  geom_text(label="Time 1", x=1, y=1.1*(max(df$`1952`, df$`1957`)), hjust=1.2, size=5) +  # title
+  geom_text(label="Time 2", x=2, y=1.1*(max(df$`1952`, df$`1957`)), hjust=-0.1, size=5) +  # title
+
+  theme(panel.background = element_blank(), 
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
+        plot.margin = unit(c(1,2,1,2), "cm"))
+```
+
 ## Dumbbell Plot
+
+Dumbbell charts are a great tool if you wish to:  
+    1. Visualize relative positions (like growth and decline) between two points in time.  
+    2. Compare distance between two categories.  
+
+In order to get the correct ordering of the dumbbells, the Y variable should be a factor and the levels of the factor variable should be in the same order as it should appear in the plot.
+
+```{r, warning=F, meesage=F}
+health <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/health.csv")
+health$Area <- factor(health$Area, levels=as.character(health$Area))  # for right ordering of the dumbbells
+health$diff <- health$pct_2014 - health$pct_2013
+
+# health$Area <- factor(health$Area)
+ggplot(health, aes(x = pct_2013, xend = pct_2014, y = reorder(Area, diff), group = Area)) + 
+  geom_vline(xintercept = c(0.05, 0.10, 0.15, 0.20, 0.25), size = 0.2) +
+  geom_dumbbell(color = "#a3c4dc", 
+                size = 1, 
+                point.colour.l = "#0e668b") + 
+  scale_x_continuous(label=percent) + 
+  labs(x = NULL, 
+       y = NULL, 
+       title = "Dumbbell Chart", 
+       subtitle = "Pct Change: 2013 vs 2014", 
+       caption = "Source: https://github.com/hrbrmstr/ggalt") +
+  theme(plot.title = element_text(hjust=0.5, face="bold"),
+        plot.background=element_rect(fill="#f7f7f7"),
+        panel.background=element_rect(fill="#f7f7f7"),
+        panel.grid.minor=element_blank(),
+        panel.grid.major.y=element_blank(),
+        panel.grid.major.x=element_line(),
+        axis.ticks=element_blank(),
+        legend.position="top",
+        panel.border=element_blank())
+```
 
 # Distribution
 ## Histogram
