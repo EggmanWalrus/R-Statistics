@@ -21,6 +21,7 @@ library(tidyverse)
 library(ggalt)
 library(ggExtra)
 library(ggcorrplot)
+library(ggthemes)
 library(quantmod)
 library(scales)
 library(gapminder)
@@ -408,17 +409,114 @@ ggplot(health, aes(x = pct_2013, xend = pct_2014, y = reorder(Area, diff), group
 # Distribution
 ## Histogram
 
+```{r}
+ggplot(mpg, aes(displ)) + 
+  scale_fill_brewer(palette = "Spectral") + 
+  geom_histogram(aes(fill=class), 
+                 binwidth = .5, 
+                 col="black", 
+                 size=.1) +  # change binwidth
+  labs(title="Histogram with Auto Binning", 
+       subtitle="Engine Displacement across Vehicle Classes") 
+```
+
+```{r}
+ggplot(mpg, aes(manufacturer)) + 
+  geom_bar(aes(fill=class), width = 0.5) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Histogram on Categorical Variable", 
+       subtitle="Manufacturer across Vehicle Classes") 
+```
+
 ## Density Plot
+
+```{r}
+ggplot(mpg, aes(cty)) + 
+  geom_density(aes(fill = factor(cyl)), alpha = 0.8) + 
+  labs(title="Density plot", 
+       subtitle="City Mileage Grouped by Number of cylinders",
+       caption="Source: mpg",
+       x="City Mileage",
+       fill="# Cylinders")
+```
 
 ## Box Plot
 
-## Dot + Box Plot
+Box plot is an excellent tool to study the distribution. It can also show the distributions within multiple groups, along with the median, range and outliners if any.  
+
+The dark line inside the box represents the median. The top of box is 75% and bottom of box is 25%. The end points of the lines (aka whiskers) is at a distance of 1.5*IQR, where IQR or Inter Quartile Range is the distance between 25th and 75th percentiles. The points outside the whiskers are marked as dots and are normally considered as extreme points.
+
+```{r}
+ggplot(mpg, aes(class, cty)) + 
+  geom_boxplot(varwidth = T, fill = "plum") + 
+  labs(title="Box plot", 
+       subtitle="City Mileage grouped by Class of vehicle",
+       caption="Source: mpg",
+       x="Class of Vehicle",
+       y="City Mileage")
+```
+
+```{r}
+ggplot(mpg, aes(class, cty)) + 
+  geom_boxplot(aes(fill = factor(cyl))) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Box plot", 
+       subtitle="City Mileage grouped by Class of vehicle",
+       caption="Source: mpg",
+       x="Class of Vehicle",
+       y="City Mileage")
+```
 
 ## Tufte Boxplot
 
+```{r}
+ggplot(mpg, aes(manufacturer, cty)) + 
+  geom_tufteboxplot() + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Tufte Styled Boxplot", 
+       subtitle="City Mileage grouped by Class of vehicle",
+       caption="Source: mpg",
+       x="Class of Vehicle",
+       y="City Mileage") + 
+  theme_tufte()
+```
+
 ## Violin Plot
 
+```{r}
+ggplot(mpg, aes(class, cty)) + 
+  geom_violin(fill = 'plum') + 
+  labs(title="Violin plot", 
+       subtitle="City Mileage vs Class of vehicle",
+       caption="Source: mpg",
+       x="Class of Vehicle",
+       y="City Mileage")
+```
+
 ## Population Pyramid
+
+Population pyramids offer a unique way of visualizing how much population or what percentage of population fall under a certain category. The below pyramid is an excellent example of how many users are retained at each stage of a email marketing campaign funnel.
+
+```{r}
+# Read data
+email_campaign_funnel <- read.csv("https://raw.githubusercontent.com/selva86/datasets/master/email_campaign_funnel.csv")
+
+# X Axis Breaks and Labels 
+brks <- seq(-15000000, 15000000, 5000000)
+lbls = paste0(as.character(c(seq(15, 0, -5), seq(5, 15, 5))), "m")
+
+# Plot
+ggplot(email_campaign_funnel, aes(x = Stage, y = Users, fill = Gender)) +   # Fill column
+  geom_bar(stat = "identity", width = .6) +   # draw the bars
+  scale_y_continuous(breaks = brks,   # Breaks
+                     labels = lbls) + # Labels
+  coord_flip() +  # Flip axes
+  labs(title="Email Campaign Funnel") +
+  theme_tufte() +  # Tufte theme from ggfortify
+  theme(plot.title = element_text(hjust = .5), 
+        axis.ticks = element_blank()) +   # Centre plot title
+  scale_fill_brewer(palette = "Dark2")  # Color palette
+```
 
 # Composition
 ## Waffle Chart
