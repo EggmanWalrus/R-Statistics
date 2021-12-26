@@ -1,0 +1,20 @@
+---
+title: "Introduction to Actor-Partner Interdependence Model (APIM)"
+author: "Yanwen Wang"
+date: "12/26/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+
+This tutorial reviews the Actor-Partner Interdependence Model (APIM; Kashy & Kenny, 2000; Kenny, Kashy, & Cook, 2006), which is often used to examine the association (1) between two constructs for two people using cross-sectional data, or (2) between the same construct from two people across two time points.
+
